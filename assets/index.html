@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="./style.css" />
+    <title>Bundle Copier</title>
+  </head>
+  <body>
+    <header><h1>🖨 Bundle Copier</h1></header>
+
+    <main>
+      <div id="src_account">
+        <h2>Source account</h2>
+        <table>
+        <tr><td><label for="src_account_sid">Account SID</label></td><td><input type="text" placeholder="ACxxxxx" id="src_account_sid"/></td></tr>
+        <tr><td><label for="src_auth_token">Auth Token</label></td><td><input type="password" id="src_auth_token"/></td></tr>
+        </table>
+        <p id="src_account_name">trial account</p>
+      </div>
+      <div id="src_bundle">
+        <h2>Source bundle(s)</h2>
+        <label for="src_bundles">Select the bundles to copy</label><br/>
+        <select id="src_bundles" multiple>
+          <option>BUxxx</option>
+          <option>BUxxx</option>
+          <option>BUxxx</option>
+          <option>BUxxx</option>
+        </select>
+      </div>
+      <div id="dest_account">
+        <h2>Destination account</h2>
+        <table>
+          <tr><td><label for="dest_account_sid">Account SID</label></td><td><input type="text" placeholder="ACxxxxx" id="dest_account_sid"/></td></tr>
+          <tr><td><label for="dest_auth_token">Auth Token</label></td><td><input type="password" id="dest_auth_token"/></td></tr>
+        </table>
+        <p id="dest_account_name">trial account</p>
+      </div>
+      <div id="run">
+        <button id="go">Copy N bundles from "My first Twilio account" (ACxxxxxxxx) to "My first Twilio Account" (Acxxxxxxxxxxx)</button>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        Made with 💖 by your friends at
+        <a href="https://www.twilio.com">Twilio</a>
+      </p>
+    </footer>
+  </body>
+</html>
