@@ -3,29 +3,40 @@ function account_fields_valid(account_sid, auth_token) {
 }
 
 function get_account_info(account_sid, auth_token) {
-  if(account_fields_valid(account_sid, auth_token)) {
-    return {
-      valid: true,
-      sid: account_sid,
-      token: auth_token,
-      name: "My First Twilio Account",
-      bundles: {
-        BUxxxx: "nom du premier bundle",
-        BUyyyy: "nom du second bundle"
-      }
-    };
-  } else {
-    return {
-      valid: false
-    };
-  }
+  return new Promise(((resolve) => {
+    if (account_fields_valid(account_sid, auth_token)) {
+      const header = new Headers();
+      header.append("Content-Type", "application/json");
+      resolve(fetch("/account-details", {
+        method: "post",
+        headers: header,
+        body: JSON.stringify({account_sid: account_sid, auth_token: auth_token})
+      }).then(function(response) {
+        if (response.ok) {
+          return response.json();
+        } else {
+          return {
+            valid: false
+          };
+        }
+      }).catch(reason => {
+        resolve( {
+          valid: false
+        });
+      }));
+    } else {
+      resolve( {
+        valid: false
+      });
+    }
+  }));
 }
 
 function update_button() {
   const btn = $("#go");
   const bdls = $("#src_bundles>option:selected").length;
   if(bdls && src_account.valid && dest_account.valid) {
-    btn.text(`Copy ${bdls} bundle(s) from "${src_account.name}" (${src_account.sid}) to "${dest_account.name}" (${dest_account.sid})`)
+    btn.text(`Copy ${bdls} bundle(s)\nfrom "${src_account.name}" (${src_account.sid})\nto "${dest_account.name}" (${dest_account.sid})`)
     btn.prop("disabled",false);
   } else {
     btn.text(`Please set the account credentials and select the bundle(s)`);
@@ -34,40 +45,74 @@ function update_button() {
 }
 
 function connect_src_account() {
-  $("#src_bundles").children().remove();
+  const src_bundle = $("#src_bundle");
+  const src_bundles = $("#src_bundles");
+  const src_account_name = $("#src_account_name");
+  src_account_name.text("🔄");
+  src_bundle.hide();
+  src_bundles.children().remove();
 
   const account_sid = $("#src_account_sid").val();
   const auth_token = $("#src_auth_token").val();
 
-  src_account = get_account_info(account_sid, auth_token);
-  if(src_account.valid) {
-    $("#src_account_name").text(src_account.name);
-    $.each(src_account.bundles, function (sid, item) {
-      $("#src_bundles").append($('<option>', {
-        value: sid,
-        text : sid + " (" + item + ")"
-      }));
-    });
-  }
+  get_account_info(account_sid, auth_token)
+    .then((account_info) => {
+      src_account = {...account_info};
+      if(src_account.valid) {
+        src_account_name.text("✅ " + src_account.name);
+        if(Object.keys(src_account.bundles).length > 1) {
+          src_bundle.show();
+          $.each(src_account.bundles, function (sid, item) {
+            src_bundles.append($('<option>', {
+              class: item.status,
+              value: sid,
+              text: sid + " (" + item.name + ")"
+            }));
+          });
+        }
+      } else {
+        src_account_name.text("❌");
+      }
 
-  update_button();
+      update_button();
+    });
+
 }
 
 function connect_dest_account() {
+  const dest_account_name = $("#dest_account_name");
+  dest_account_name.text("🔄");
+
   const account_sid = $("#dest_account_sid").val();
   const auth_token = $("#dest_auth_token").val();
 
-  dest_account = get_account_info(account_sid, auth_token);
-  if(dest_account.valid) {
-    $("#dest_account_name").text(dest_account.name);
-  }
+  get_account_info(account_sid, auth_token)
+    .then((account_info) => {
+      dest_account = {...account_info};
+      if (dest_account.valid) {
+        dest_account_name.text("✅ " + dest_account.name);
+      } else {
+        dest_account_name.text("❌");
+      }
 
-  update_button();
+      update_button();
+    });
 }
 
-function start_copy() {
-  const logs = $("logs");
-  logs.append("<p>ready</p>");
+function copy() {
+  const btn = $("#go");
+  btn.text(`Please wait...`);
+  btn.prop("disabled",true);
+
+  const src_sid = src_account.sid;
+  const src_token = src_account.token;
+  const dest_sid = dest_account.sid;
+  const dest_token = dest_account.token;
+  const bundles = $.map($("#src_bundles>option:selected"), function(t) { return t.value });
+
+  const logs = $("#logs");
+  logs.append("ready<br/>");
+  update_button();
 }
 
 $(document).ready(function() {
@@ -77,7 +122,7 @@ $(document).ready(function() {
   $("#dest_auth_token").change(connect_dest_account);
   $("#src_bundles").change(update_button);
   update_button();
-  $("#go").click(start_copy());
+  $("#go").click(copy);
 })
 
 let src_account = {valid:false};
