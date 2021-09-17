@@ -109,8 +109,33 @@ function copy() {
   const dest_sid = dest_account.sid;
   const dest_token = dest_account.token;
   const bundles = $.map($("#src_bundles>option:selected"), function(t) { return t.value });
-
   const logs = $("#logs");
+
+  const header = new Headers();
+  header.append("Content-Type", "application/json");
+  fetch("/copy-bundle", {
+    method: "post",
+    headers: header,
+    body: JSON.stringify({
+      "src_account_sid":src_sid,
+      "src_auth_token":src_token,
+      "dest_account_sid":dest_sid,
+      "dest_auth_token":dest_token,
+      "bundle_sids":bundles
+    })
+  }).then(function(response) {
+    if (response.ok) {
+      response.json().then((resjson) => {
+        resjson.forEach((k,v) => logs.append(`${k}: ${v}`));
+        logs.append("ready<br/>");
+      })
+    } else {
+      logs.append("error");
+    }
+  }).catch(reason => {
+    logs.append(reason);
+  })
+
   logs.append("ready<br/>");
   update_button();
 }
